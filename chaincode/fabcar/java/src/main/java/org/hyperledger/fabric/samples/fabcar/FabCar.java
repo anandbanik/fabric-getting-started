@@ -46,7 +46,8 @@ public final class FabCar implements ContractInterface {
 
     private enum FabCarErrors {
         CAR_NOT_FOUND,
-        CAR_ALREADY_EXISTS
+        CAR_ALREADY_EXISTS,
+        CAR_DOES_NOT_EXISTS
     }
 
     /**
@@ -120,10 +121,42 @@ public final class FabCar implements ContractInterface {
         ChaincodeStub stub = ctx.getStub();
 
         String carState = stub.getStringState(key);
+        
         if (!carState.isEmpty()) {
             String errorMessage = String.format("Car %s already exists", key);
             System.out.println(errorMessage);
             throw new ChaincodeException(errorMessage, FabCarErrors.CAR_ALREADY_EXISTS.toString());
+        }
+
+        Car car = new Car(make, model, color, owner);
+        carState = genson.serialize(car);
+        stub.putStringState(key, carState);
+
+        return car;
+    }
+
+    /**
+     * Update an existing car on the ledger.
+     *
+     * @param ctx the transaction context
+     * @param key the key for the new car
+     * @param make the make of the new car
+     * @param model the model of the new car
+     * @param color the color of the new car
+     * @param owner the owner of the new car
+     * @return the created Car
+     */
+    @Transaction()
+    public Car updateCar(final Context ctx, final String key, final String make, final String model,
+            final String color, final String owner) {
+        ChaincodeStub stub = ctx.getStub();
+
+        String carState = stub.getStringState(key);
+        
+        if (carState.isEmpty()) {
+            String errorMessage = String.format("Car %s does not exists", key);
+            System.out.println(errorMessage);
+            throw new ChaincodeException(errorMessage, FabCarErrors.CAR_DOES_NOT_EXISTS.toString());
         }
 
         Car car = new Car(make, model, color, owner);
@@ -158,6 +191,36 @@ public final class FabCar implements ContractInterface {
 
         return response;
     }
+
+    /**
+     * Retrieves every car having a specific color from the ledger.
+     *
+     * @param ctx the transaction context
+     * @param color the car color
+     * @return array of Cars found on the ledger
+     */
+    @Transaction()
+    public Car[] queryCarsByColor(final Context ctx, final String color) {
+        ChaincodeStub stub = ctx.getStub();
+        /*
+        final String startKey = "CAR0";
+        final String endKey = "CAR999";
+        */
+        String query = "{\"selector\":{\"color\":\""+color+"\"}}";
+        List<Car> cars = new ArrayList<Car>();
+
+        //QueryResultsIterator<KeyValue> results = stub.getStateByRange(startKey, endKey);
+        QueryResultsIterator<KeyValue> results = stub.getQueryResult(query);
+        for (KeyValue result: results) {
+            Car car = genson.deserialize(result.getStringValue(), Car.class);
+            cars.add(car);
+        }
+
+        Car[] response = cars.toArray(new Car[cars.size()]);
+
+        return response;
+    }
+    
 
     /**
      * Changes the owner of a car on the ledger.
