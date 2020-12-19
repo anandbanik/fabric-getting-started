@@ -44,24 +44,43 @@ public class ClientApp {
 				// get the network and contract
 				Network network = gateway.getNetwork("mychannel");
 				Contract contract = network.getContract("fabcar");
+				
+				//contract.
 
 				byte[] result;
 
-				result = contract.evaluateTransaction("queryAllCars");
-				logger.info(new String(result));
-
+				
+				
 				/*
-				 * contract.submitTransaction("createCar", "CAR10", "VW", "Polo", "Grey",
-				 * "Mary");
+				 * result = contract.evaluateTransaction("queryAllCars"); logger.info(new
+				 * String(result));
 				 * 
-				 * result = contract.evaluateTransaction("queryCar", "CAR10");
-				 * System.out.println(new String(result));
 				 * 
-				 * contract.submitTransaction("changeCarOwner", "CAR10", "Archie");
 				 * 
-				 * result = contract.evaluateTransaction("queryCar", "CAR10");
-				 * System.out.println(new String(result));
+				 * 
+				 * 
+				 * contract.submitTransaction("createCar", "CAR11", "Audi", "Q5", "Blue",
+				 * "Anand");
+				 * 
+				 * result = contract.evaluateTransaction("queryCar", "CAR11"); logger.info(new
+				 * String(result));
+				 * 
+				 * contract.submitTransaction("changeCarOwner", "CAR11", "Abanik");
+				 * 
+				 * 
+				 * 
+				 * 
+				 * result = contract.evaluateTransaction("queryCar", "CAR11"); logger.info(new
+				 * String(result));
+				 * 
+				 * 
+				 * result = contract.evaluateTransaction("queryCarsByColor", "Blue");
+				 * logger.info("By Color: "+new String(result));
 				 */
+				  
+				  result = contract.evaluateTransaction("queryCarsByCompositeKey", "Punto");
+				  logger.info("By Model: "+new String(result));
+				 
 			}
 
 		} catch (Exception ex) {

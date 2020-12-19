@@ -36,6 +36,7 @@ elif [ "$CC_RUNTIME_LANGUAGE" = "java" ]; then
 	echo Compiling Java code ...
 	pushd ../chaincode/fabcar/java
 	./gradlew installDist
+  #mvn clean install
 	popd
 	echo Finished compiling Java code
 

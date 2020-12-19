@@ -4,3 +4,5 @@
 .classpath
 .project
 /.settings
+/client/fabric-wallet/.settings
+/client/fabric-wallet/wallet

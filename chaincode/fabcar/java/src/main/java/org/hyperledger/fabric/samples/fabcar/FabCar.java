@@ -17,6 +17,7 @@ import org.hyperledger.fabric.contract.annotation.License;
 import org.hyperledger.fabric.contract.annotation.Transaction;
 import org.hyperledger.fabric.shim.ChaincodeException;
 import org.hyperledger.fabric.shim.ChaincodeStub;
+import org.hyperledger.fabric.shim.ledger.CompositeKey;
 import org.hyperledger.fabric.shim.ledger.KeyValue;
 import org.hyperledger.fabric.shim.ledger.QueryResultsIterator;
 
@@ -122,6 +123,9 @@ public final class FabCar implements ContractInterface {
 
         String carState = stub.getStringState(key);
         
+        CompositeKey compositeKey = stub.createCompositeKey("model~make", make, model);
+        
+        
         if (!carState.isEmpty()) {
             String errorMessage = String.format("Car %s already exists", key);
             System.out.println(errorMessage);
@@ -131,6 +135,11 @@ public final class FabCar implements ContractInterface {
         Car car = new Car(make, model, color, owner);
         carState = genson.serialize(car);
         stub.putStringState(key, carState);
+        
+
+        stub.putState(compositeKey.toString(), carState.getBytes());
+        
+        stub.setEvent("receiving", carState.getBytes());
 
         return car;
     }
@@ -179,6 +188,7 @@ public final class FabCar implements ContractInterface {
         final String startKey = "CAR0";
         final String endKey = "CAR999";
         List<Car> cars = new ArrayList<Car>();
+        
 
         QueryResultsIterator<KeyValue> results = stub.getStateByRange(startKey, endKey);
 
@@ -213,6 +223,31 @@ public final class FabCar implements ContractInterface {
         QueryResultsIterator<KeyValue> results = stub.getQueryResult(query);
         for (KeyValue result: results) {
             Car car = genson.deserialize(result.getStringValue(), Car.class);
+            cars.add(car);
+        }
+
+        Car[] response = cars.toArray(new Car[cars.size()]);
+
+        return response;
+    }
+    
+    /**
+     * Retrieves cars with specific make using partialCompositeQuery
+     * 
+     * @param ctx the transaction context
+     * @param make of the car
+     * @return array of Cars found on the ledger
+     */
+    @Transaction()
+    public Car[] queryCarsByCompositeKey(final Context ctx, final String model) {
+    	ChaincodeStub stub = ctx.getStub();
+    	
+    	List<Car> cars = new ArrayList<Car>();
+    	
+    	QueryResultsIterator<KeyValue> results = stub.getStateByPartialCompositeKey("model~make", model);
+    	
+    	for (KeyValue result: results) {
+            Car car = genson.deserialize(result.getValue(), Car.class);
             cars.add(car);
         }
 
