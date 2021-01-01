@@ -104,6 +104,27 @@ public final class FabCar implements ContractInterface {
             stub.putStringState(key, carState);
         }
     }
+    
+    /**
+     * Creates a new car on the ledger with json payload.
+     *
+     * @param ctx the transaction context
+     * @param payload for the new car
+     * @return the created Car
+     */
+    @Transaction()
+    public Car createCarByJson(final Context ctx, final String payload) {
+        ChaincodeStub stub = ctx.getStub();
+        
+		String key = String.format("CAR%03d", 11);
+
+            Car car = genson.deserialize(payload, Car.class);
+            String carState = genson.serialize(car);
+            stub.putStringState(key, carState);
+            
+            stub.setEvent("created", carState.getBytes());
+        return car;
+    }
 
     /**
      * Creates a new car on the ledger.
